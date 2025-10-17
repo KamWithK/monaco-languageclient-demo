@@ -1,0 +1,17 @@
+{
+  "arrowParens": "always",
+  "bracketSpacing": false,
+  "endOfLine": "auto",
+  "printWidth": 100,
+  "tabWidth": 4,
+  "trailingComma": "all",
+  "overrides": [
+    {
+      "files": ["*.json", "*.css", "*.config.ts", ".prettierrc", ".eslintrc.cjs"],
+      "options": {
+        "tabWidth": 2
+      }
+    }
+  ]
+}
+
