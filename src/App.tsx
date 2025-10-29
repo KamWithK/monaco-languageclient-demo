@@ -1,6 +1,6 @@
 import {MonacoEditorReactComp} from "@typefox/monaco-editor-react";
 import type {CodeContent, EditorAppConfig, TextContents} from "monaco-languageclient/editorApp";
-import {useState} from "react";
+import {useState, useRef, useEffect} from "react";
 import {BrowserMessageReader, BrowserMessageWriter} from "vscode-jsonrpc/browser";
 import text from "./langium/example.statemachine?raw";
 import workerUrl from "./langium/worker?worker&url";
@@ -91,24 +91,39 @@ const createEditorAppConfig = (codeContent: CodeContent): EditorAppConfig => ({
     },
 });
 
-const App = () => {
-    const [testState, setTestState] = useState<string>(text);
+const languageClientConfig = createLanguageClientConfig();
+const vscodeApiConfig = createVscodeApiConfig();
+const editorAppConfig = createEditorAppConfig({
+    uri: "/workspace/example.statemachine",
+    text: text,
+});
 
-    const languageClientConfig = createLanguageClientConfig();
-    const vscodeApiConfig = createVscodeApiConfig();
-    const editorAppConfig = createEditorAppConfig({
-        uri: "/workspace/example.statemachine",
-        text: testState,
-    });
+const App = () => {
+    const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+    const [testState, setTestState] = useState<string>(text);
+    const [minimapState, setMinimapState] = useState<bool>(text);
+
+    const onEditorStartDone = (editorApp?: EditorApp): void => {
+      const editor = editorApp.getEditor();
+      if (editor !== undefined) {
+        editorRef.current = editorApp.getEditor();
+      }
+    }
 
     const onTextChanged = (textChanges: TextContents) =>
-        setTestState(textChanges.modified as string);
+      setTestState(textChanges.modified as string);
+
+    useEffect(() => {
+      editorRef.current?.updateOptions({
+        minimap: {enabled: minimapState},
+      });
+    }, [editorRef, minimapState]);
 
     return (
         <>
             <button
                 style={{background: "purple"}}
-                onClick={() => setTestState(testState + "test")}
+                onClick={() => setMinimapState(!minimapState)}
             />
 
             <MonacoEditorReactComp
